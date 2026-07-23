@@ -1,0 +1,42 @@
+import { NextResponse } from "next/server";
+import { services } from "@/lib/data";
+import { getSupabaseAdmin } from "@/lib/supabase";
+
+const openDays = new Set([2, 3, 4, 5, 6]);
+const startMinutes = 9 * 60;
+const endMinutes = 18 * 60;
+const stepMinutes = 30;
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get("date");
+    const serviceId = searchParams.get("service");
+    const service = services.find((item) => item.id === serviceId);
+    if (!date || !service) return NextResponse.json({ error: "Date and service are required" }, { status: 400 });
+
+    const selected = new Date(`${date}T12:00:00-05:00`);
+    if (!openDays.has(selected.getDay())) return NextResponse.json({ slots: [] });
+
+    const supabase = getSupabaseAdmin();
+    const dayStart = new Date(`${date}T00:00:00-05:00`).toISOString();
+    const dayEnd = new Date(`${date}T23:59:59-05:00`).toISOString();
+    const { data, error } = await supabase.from("appointments").select("starts_at,ends_at,status").gte("starts_at", dayStart).lte("starts_at", dayEnd).in("status", ["pending", "confirmed"]);
+    if (error) throw error;
+
+    const slots: string[] = [];
+    for (let minutes = startMinutes; minutes + service.duration <= endMinutes; minutes += stepMinutes) {
+      const hour = String(Math.floor(minutes / 60)).padStart(2, "0");
+      const minute = String(minutes % 60).padStart(2, "0");
+      const start = new Date(`${date}T${hour}:${minute}:00-05:00`);
+      if (start.getTime() < Date.now() + 2 * 60 * 60 * 1000) continue;
+      const end = new Date(start.getTime() + service.duration * 60000);
+      const overlaps = (data || []).some((appt) => start < new Date(appt.ends_at) && end > new Date(appt.starts_at));
+      if (!overlaps) slots.push(start.toISOString());
+    }
+
+    return NextResponse.json({ slots });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to load availability" }, { status: 500 });
+  }
+}
