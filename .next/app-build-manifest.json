@@ -16,10 +16,22 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/checkout/route.js"
     ],
-    "/_not-found/page": [
+    "/book/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/css/app/book/page.css",
+      "static/chunks/app/book/page.js"
+    ],
+    "/api/availability/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/availability/route.js"
+    ],
+    "/shop/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/shop/page.css",
+      "static/chunks/app/shop/page.js"
     ]
   }
 }
