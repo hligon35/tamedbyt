@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import ownerImage from "./assets/tamara.png";
+import heroLogo from "./assets/tamedxt.png";
 import ProductGrid from "@/components/ProductGrid";
 import { services } from "@/lib/data";
 import { getProducts } from "@/lib/shopify";
@@ -15,7 +15,13 @@ export default async function Home() {
         <p>Personalized natural hair care, refined styling and products created to protect every texture.</p>
         <div className="button-row"><Link className="button gold" href="/book">Book an appointment</Link><Link className="button ghost" href="/shop">Shop Tame Ur Mane</Link></div>
       </div>
-      <div className="hero-art"><div className="portrait-placeholder"><Image src={ownerImage} alt="Tam, owner of Tamed By Tam" fill priority sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "center top" }} /></div><div className="hero-ring"/><span className="hero-badge">The Tamed<br/>Experience</span></div>
+      <div className="hero-art">
+        <div className="portrait-placeholder" style={{ background: "radial-gradient(circle at center, #ffffff 0%, #f1e8ff 58%, #9b74e8 100%)" }}>
+          <Image src={heroLogo} alt="Tamed By Tam" fill priority sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: "contain", padding: "10%" }} />
+        </div>
+        <div className="hero-ring"/>
+        <span className="hero-badge">The Tamed<br/>Experience</span>
+      </div>
     </section>
     <section className="marquee"><span>Healthy Hair</span><i/><span>Protective Styling</span><i/><span>Natural Beauty</span><i/><span>Premium Care</span></section>
     <section className="section">
