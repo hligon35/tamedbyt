@@ -16,8 +16,8 @@ export default async function Home() {
         <div className="button-row"><Link className="button gold" href="/book">Book an appointment</Link><Link className="button ghost" href="/shop">Shop Tame Ur Mane</Link></div>
       </div>
       <div className="hero-art">
-        <div className="portrait-placeholder" style={{ background: "radial-gradient(circle at center, #ffffff 0%, #f1e8ff 58%, #9b74e8 100%)" }}>
-          <Image src={heroLogo} alt="Tamed By Tam" fill priority sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: "contain", padding: "10%" }} />
+        <div style={{ position: "absolute", inset: "10%", zIndex: 1 }}>
+          <Image src={heroLogo} alt="Tamed By Tam" fill priority sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: "contain" }} />
         </div>
         <div className="hero-ring"/>
         <span className="hero-badge">The Tamed<br/>Experience</span>
