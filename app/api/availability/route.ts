@@ -8,6 +8,11 @@ const endMinutes = 18 * 60;
 const stepMinutes = 30;
 const bookingOffset = "-05:00";
 
+function isMissingAppointmentsTable(error: { code?: string; message?: string } | null) {
+  if (!error) return false;
+  return error.code === "PGRST205" || /appointments.*schema cache|table.*appointments.*not found/i.test(error.message || "");
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,14 +33,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Choose a valid date" }, { status: 400 });
     }
 
+    const supabaseConfigured = isSupabaseConfigured();
     if (!openDays.has(selected.getDay())) {
-      return NextResponse.json({ slots: [], databaseConnected: isSupabaseConfigured() });
+      return NextResponse.json({ slots: [], databaseConnected: supabaseConfigured, databaseReady: supabaseConfigured });
     }
 
     let appointments: Array<{ starts_at: string; ends_at: string; status: string }> = [];
-    const databaseConnected = isSupabaseConfigured();
+    let databaseReady = supabaseConfigured;
+    let warning: string | undefined;
 
-    if (databaseConnected) {
+    if (supabaseConfigured) {
       const supabase = getSupabaseAdmin();
       const dayStart = new Date(`${date}T00:00:00${bookingOffset}`).toISOString();
       const dayEnd = new Date(`${date}T23:59:59${bookingOffset}`).toISOString();
@@ -46,8 +53,17 @@ export async function GET(request: Request) {
         .lte("starts_at", dayEnd)
         .in("status", ["pending", "confirmed"]);
 
-      if (error) throw new Error(`Unable to read appointments: ${error.message}`);
-      appointments = data || [];
+      if (isMissingAppointmentsTable(error)) {
+        databaseReady = false;
+        warning = "Supabase is connected, but the appointments table has not been created. Showing business-hour availability only.";
+      } else if (error) {
+        throw new Error(`Unable to read appointments: ${error.message}`);
+      } else {
+        appointments = data || [];
+      }
+    } else {
+      databaseReady = false;
+      warning = "Supabase is not configured; showing business-hour availability without saved appointment conflicts.";
     }
 
     const slots: string[] = [];
@@ -67,8 +83,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       slots,
-      databaseConnected,
-      warning: databaseConnected ? undefined : "Supabase is not configured; showing business-hour availability without saved appointment conflicts."
+      databaseConnected: supabaseConfigured,
+      databaseReady,
+      warning
     });
   } catch (error) {
     console.error("Availability route failed:", error);
