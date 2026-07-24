@@ -34,9 +34,32 @@ alter table public.appointments add column if not exists checkout_subtotal_amoun
 alter table public.appointments add column if not exists tax_amount integer not null default 0;
 alter table public.appointments add column if not exists checkout_total_amount integer not null default 0;
 
+create table if not exists public.product_inventory (
+  product_id text primary key,
+  product_name text not null,
+  quantity integer not null default 0 check (quantity >= 0),
+  low_stock_threshold integer not null default 3 check (low_stock_threshold >= 0),
+  active boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.coupon_codes (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  percent_off numeric(5,2) not null check (percent_off > 0 and percent_off <= 100),
+  active boolean not null default true,
+  stripe_coupon_id text not null,
+  stripe_promotion_code_id text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists appointments_start_idx on public.appointments (starts_at);
 create index if not exists appointments_status_idx on public.appointments (status);
+create index if not exists coupon_codes_active_idx on public.coupon_codes (active);
 
 alter table public.appointments enable row level security;
+alter table public.product_inventory enable row level security;
+alter table public.coupon_codes enable row level security;
 
--- The application uses the service-role key on server-only routes. No public table policy is required.
+-- Server-only routes use the Supabase service-role key. No public policies are required.
