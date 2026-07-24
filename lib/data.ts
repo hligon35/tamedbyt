@@ -20,7 +20,7 @@ export const serviceCatalog = [
   {
     id: "consultation",
     title: "Virtual Consultation",
-    description: "A focused virtual consultation to discuss your hair goals, service selection and preparation.",
+    description: "Explore hairstyle options, trends and personalized recommendations through a virtual consultation. A consultation link is sent the day before the appointment.",
     items: [{ name: "Consultation Virtually", duration: "15 min", price: "$0" }]
   },
   {
@@ -78,10 +78,48 @@ export const serviceCatalog = [
     description: "A voluminous blowout using a round brush or paddle brush for body, movement and texture.",
     items: [{ name: "Bouncy Blowout Styling (Round Brush)", duration: "75 min", price: "$85" }]
   },
-  { id: "updo-styling", title: "Updo Styling", description: "One updo option is currently offered, starting at $100.", items: [] },
-  { id: "individual-loc", title: "Individual Loc", description: "Three loc-care options are currently offered, starting at $80.", items: [] },
-  { id: "mens-services", title: "Men's Services", description: "Two men's service options are currently offered, starting at $50.", items: [] },
-  { id: "add-ons", title: "Add-ons", description: "Ten service add-ons are currently offered, starting at $25.", items: [] }
+  {
+    id: "updo-styling",
+    title: "Updo Styling",
+    description: "Elevated updo styling for special occasions, events or a polished everyday look.",
+    items: [{ name: "Sleek Ponytail", duration: "140 min", price: "$100" }]
+  },
+  {
+    id: "individual-loc",
+    title: "Individual Loc",
+    description: "Personalized care for individual locs with nourishment, maintenance and styling support.",
+    items: [
+      { name: "Half Head", duration: "90 min", price: "$80", deposit: "$20 deposit" },
+      { name: "Full Head", duration: "210 min", price: "$200", deposit: "$20 deposit" },
+      { name: "Boho Individual Locs (Hair Included)", duration: "240 min", price: "$280", deposit: "$50 deposit" }
+    ]
+  },
+  {
+    id: "mens-services",
+    title: "Men's Services",
+    description: "Specialized men's grooming and braid services designed to enhance your individual style.",
+    items: [
+      { name: "Designs", duration: "95 min", price: "$75", deposit: "$15 deposit" },
+      { name: "Straight Backs (2–10 Braids)", duration: "95 min", price: "$50" }
+    ]
+  },
+  {
+    id: "add-ons",
+    title: "Add-ons",
+    description: "Optional enhancements covering extension hair, cleansing, treatments, styling and color.",
+    items: [
+      { name: "Boho Human Hair", duration: "10 min", price: "Price varies" },
+      { name: "Takedown / Shampoo / Deep Condition / Blow Dry", duration: "90 min", price: "$100" },
+      { name: "Touch Up Style", duration: "30 min", price: "$40" },
+      { name: "Quick Weave Bundles", duration: "10 min", price: "$100" },
+      { name: "Crochet Hair", duration: "10 min", price: "$50" },
+      { name: "Hydration Treatment", duration: "25 min", price: "$40" },
+      { name: "Color (Lumi 10)", duration: "25 min", price: "$25" },
+      { name: "Press or Twist Out", duration: "10 min", price: "$60" },
+      { name: "Sew-In Bundles", duration: "10 min", price: "$250" },
+      { name: "Color", duration: "50 min", price: "$80" }
+    ]
+  }
 ];
 
 export const products = [
