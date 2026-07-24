@@ -15,11 +15,6 @@ function isSchemaError(error: unknown) {
   return value?.code === "PGRST204" || value?.code === "PGRST205" || value?.code === "42703" || /schema cache|column .* does not exist|appointments.*not found/i.test(message);
 }
 
-function isStripeTaxSetupError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || "");
-  return /automatic tax|stripe tax|tax registration|tax settings|customer location|address.*tax/i.test(message);
-}
-
 export async function POST(request: Request) {
   let appointmentId = "";
 
@@ -152,45 +147,33 @@ export async function POST(request: Request) {
       }))
     ];
 
-    let session;
-    try {
-      session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        automatic_tax: { enabled: true },
-        customer_email: customerEmail,
-        billing_address_collection: "required",
-        line_items: lineItems,
-        success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/book?checkout=cancelled&service=${encodeURIComponent(service.id)}`,
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      automatic_tax: { enabled: false },
+      customer_email: customerEmail,
+      billing_address_collection: "auto",
+      line_items: lineItems,
+      success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/book?checkout=cancelled&service=${encodeURIComponent(service.id)}`,
+      metadata: {
+        type: "appointment",
+        appointment_id: appointment.id,
+        service_id: service.id,
+        service_name: service.title,
+        tax_bypassed_for_testing: "true",
+        products: selectedProducts.map((item) => `${item.title} x${item.quantity}`).join(", ").slice(0, 500)
+      },
+      payment_intent_data: {
+        receipt_email: customerEmail,
+        description: `${service.title} appointment with ${selectedProducts.length} product selection(s)`,
         metadata: {
-          type: "appointment",
           appointment_id: appointment.id,
-          service_id: service.id,
           service_name: service.title,
-          products: selectedProducts.map((item) => `${item.title} x${item.quantity}`).join(", ").slice(0, 500)
-        },
-        payment_intent_data: {
-          receipt_email: customerEmail,
-          description: `${service.title} appointment with ${selectedProducts.length} product selection(s)`,
-          metadata: {
-            appointment_id: appointment.id,
-            service_name: service.title,
-            product_total: String(productTotal)
-          }
+          product_total: String(productTotal),
+          tax_bypassed_for_testing: "true"
         }
-      });
-    } catch (stripeError) {
-      await supabase.from("appointments").update({ status: "expired" }).eq("id", appointment.id).eq("status", "pending");
-      appointmentId = "";
-
-      if (isStripeTaxSetupError(stripeError)) {
-        return NextResponse.json(
-          { error: "Stripe Tax is not fully configured. Activate Stripe Tax and add the Kentucky registration in the Stripe Dashboard, then try again." },
-          { status: 503 }
-        );
       }
-      throw stripeError;
-    }
+    });
 
     await supabase.from("appointments").update({ stripe_session_id: session.id }).eq("id", appointment.id);
     return NextResponse.json({ url: session.url });
