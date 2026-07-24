@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       `Appointment: ${startsAt.toLocaleString("en-US", { timeZone: "America/Chicago", dateStyle: "full", timeStyle: "short" })}`,
       service.deposit < service.priceAmount
         ? `Starting service price ${service.displayPrice}; $${(service.deposit / 100).toFixed(2)} due today`
-        : `Service payment due today`
+        : "Service payment due today"
     ].join(" · ");
 
     const lineItems = [
@@ -119,6 +119,7 @@ export async function POST(request: Request) {
         products: selectedProducts.map((item) => `${item.title} x${item.quantity}`).join(", ").slice(0, 500)
       },
       payment_intent_data: {
+        receipt_email: customerEmail,
         description: `${service.title} appointment with ${selectedProducts.length} product selection(s)`,
         metadata: {
           appointment_id: appointment.id,
