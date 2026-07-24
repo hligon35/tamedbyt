@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { services } from "@/lib/data";
+import { appointmentServices } from "@/lib/data";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 const openDays = new Set([2, 3, 4, 5, 6]);
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
     const serviceId = searchParams.get("service");
-    const service = services.find((item) => item.id === serviceId);
+    const service = appointmentServices.find((item) => item.id === serviceId);
 
     if (!date || !service) {
       return NextResponse.json({ error: "Date and service are required" }, { status: 400 });
@@ -81,12 +81,7 @@ export async function GET(request: Request) {
       if (!overlaps) slots.push(start.toISOString());
     }
 
-    return NextResponse.json({
-      slots,
-      databaseConnected: supabaseConfigured,
-      databaseReady,
-      warning
-    });
+    return NextResponse.json({ slots, databaseConnected: supabaseConfigured, databaseReady, warning });
   } catch (error) {
     console.error("Availability route failed:", error);
     return NextResponse.json(
