@@ -1,6 +1,6 @@
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
-import { serviceCatalog } from "@/lib/data";
+import { appointmentServices, serviceCatalog } from "@/lib/data";
 import consultationImage from "../../shopPhotos/tame-ur-mane-hair-care-lifestyle.jpg";
 import naturalHairImage from "../../shopPhotos/tame-ur-mane-hair-care-lifestyle-alt-01.jpg";
 import extensionsImage from "../../shopPhotos/tame-ur-mane-long-bonnet-lifestyle-woman.jpg";
@@ -54,7 +54,7 @@ export default function ServicesPage() {
     <section className="page-hero services-hero">
       <p className="eyebrow">Services & pricing</p>
       <h1>Care for every texture.<br/><em>Style for every season.</em></h1>
-      <p>Browse each category by image, starting price and estimated time range. Expand any category to see every available option.</p>
+      <p>Browse each category by image, starting price and estimated time range. Expand any category and select the exact option to add it to an appointment.</p>
       <div className="button-row"><Link className="button gold" href="/book">Book an appointment</Link><a className="button ghost" href="#service-menu">View service menu</a></div>
     </section>
 
@@ -66,6 +66,8 @@ export default function ServicesPage() {
       <div className="service-category-grid">
         {serviceCatalog.map((category) => {
           const summary = getSummary(category);
+          const firstBookable = appointmentServices.find((service) => service.categoryId === category.id);
+
           return <article className="service-category-card" id={category.id} key={category.id}>
             <div className="service-category-image">
               <Image src={categoryImages[category.id]} alt={`${category.title} service`} fill sizes="(max-width: 760px) 100vw, 50vw" />
@@ -82,19 +84,26 @@ export default function ServicesPage() {
               </div>
 
               <details className="service-options">
-                <summary>View options <span aria-hidden="true">+</span></summary>
+                <summary>View and select options <span aria-hidden="true">+</span></summary>
                 <div className="service-options-list">
-                  {category.items.map((item) => <div className="service-option-row" key={`${category.id}-${item.name}`}>
-                    <div>
-                      <h3>{item.name}</h3>
-                      <p>{item.duration}{item.deposit ? ` · ${item.deposit} required` : ""}</p>
-                    </div>
-                    <strong>{item.price}</strong>
-                  </div>)}
+                  {category.items.map((item) => {
+                    const bookable = appointmentServices.find((service) => service.categoryId === category.id && service.title === item.name);
+                    const content = <>
+                      <div>
+                        <h3>{item.name}</h3>
+                        <p>{item.duration}{item.deposit ? ` · ${item.deposit} required` : ""}</p>
+                      </div>
+                      <div className="service-option-action"><strong>{item.price}</strong><span>{bookable ? "Add to appointment →" : "Contact for pricing"}</span></div>
+                    </>;
+
+                    return bookable
+                      ? <Link className="service-option-row selectable" href={`/book?service=${encodeURIComponent(bookable.id)}`} key={`${category.id}-${item.name}`}>{content}</Link>
+                      : <div className="service-option-row" key={`${category.id}-${item.name}`}>{content}</div>;
+                  })}
                 </div>
               </details>
 
-              <Link className="button black full" href="/book">Select this category</Link>
+              {firstBookable && <Link className="button black full" href={`/book?service=${encodeURIComponent(firstBookable.id)}`}>Start with this category</Link>}
             </div>
           </article>;
         })}
@@ -102,8 +111,8 @@ export default function ServicesPage() {
     </section>
 
     <section className="service-note">
-      <div><p className="eyebrow">Before booking</p><h2>Choose the closest service, then confirm the details.</h2></div>
-      <p>Services marked with a plus sign are starting prices. Hair length, density, added hair, specialty finishes and corrective work may affect the final total.</p>
+      <div><p className="eyebrow">Before booking</p><h2>Choose the exact service, then add products.</h2></div>
+      <p>The appointment builder carries the selected service into scheduling and lets the customer add retail products before one combined Stripe checkout.</p>
       <Link className="button gold" href="/book">Continue to booking</Link>
     </section>
   </>;
