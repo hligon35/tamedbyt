@@ -3,6 +3,9 @@ import { appointmentServices, products } from "@/lib/data";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { stripe } from "@/lib/stripe";
 
+const HAIRDRESSING_TAX_CODE = "txcd_20040001";
+const TANGIBLE_GOODS_TAX_CODE = "txcd_99999999";
+
 type RequestedProduct = { id?: string; quantity?: number };
 
 export async function POST(request: Request) {
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
     });
 
     const productTotal = selectedProducts.reduce((sum, item) => sum + item.unitAmount * item.quantity, 0);
-    const amountDueToday = service.deposit + productTotal;
+    const subtotalDueToday = service.deposit + productTotal;
     const supabase = getSupabaseAdmin();
 
     const { data: conflicts, error: conflictError } = await supabase
@@ -62,9 +65,11 @@ export async function POST(request: Request) {
         deposit_amount: service.deposit,
         products: selectedProducts,
         product_total_amount: productTotal,
-        checkout_total_amount: amountDueToday,
-        status: amountDueToday === 0 ? "confirmed" : "pending",
-        confirmed_at: amountDueToday === 0 ? new Date().toISOString() : null
+        checkout_subtotal_amount: subtotalDueToday,
+        checkout_total_amount: subtotalDueToday,
+        tax_amount: 0,
+        status: subtotalDueToday === 0 ? "confirmed" : "pending",
+        confirmed_at: subtotalDueToday === 0 ? new Date().toISOString() : null
       })
       .select("id")
       .single();
@@ -72,7 +77,7 @@ export async function POST(request: Request) {
     if (error) throw error;
 
     const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-    if (amountDueToday === 0) {
+    if (subtotalDueToday === 0) {
       return NextResponse.json({ url: `${origin}/book/success?appointment_id=${appointment.id}` });
     }
 
@@ -91,7 +96,12 @@ export async function POST(request: Request) {
             price_data: {
               currency: "usd",
               unit_amount: service.deposit,
-              product_data: { name: service.title, description: appointmentDescription }
+              tax_behavior: "exclusive" as const,
+              product_data: {
+                name: service.title,
+                description: appointmentDescription,
+                tax_code: HAIRDRESSING_TAX_CODE
+              }
             }
           }]
         : []),
@@ -100,14 +110,21 @@ export async function POST(request: Request) {
         price_data: {
           currency: "usd",
           unit_amount: item.unitAmount,
-          product_data: { name: item.title, description: "Added to appointment for salon pickup" }
+          tax_behavior: "exclusive" as const,
+          product_data: {
+            name: item.title,
+            description: "Added to appointment for salon pickup",
+            tax_code: TANGIBLE_GOODS_TAX_CODE
+          }
         }
       }))
     ];
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      automatic_tax: { enabled: true },
       customer_email: customerEmail,
+      billing_address_collection: "required",
       line_items: lineItems,
       success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/book?checkout=cancelled&service=${encodeURIComponent(service.id)}`,
