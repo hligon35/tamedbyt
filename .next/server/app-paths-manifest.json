@@ -1,7 +1,7 @@
 {
-  "/api/availability/route": "app/api/availability/route.js",
-  "/api/checkout/route": "app/api/checkout/route.js",
   "/page": "app/page.js",
+  "/services/page": "app/services/page.js",
+  "/gallery/page": "app/gallery/page.js",
   "/book/page": "app/book/page.js",
   "/shop/page": "app/shop/page.js"
 }
