@@ -6,11 +6,21 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/services/page": [
+    "/book/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/services/page.css",
-      "static/chunks/app/services/page.js"
+      "static/css/app/book/page.css",
+      "static/chunks/app/book/page.js"
+    ],
+    "/api/availability/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/availability/route.js"
+    ],
+    "/api/bookings/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/bookings/route.js"
     ]
   }
 }
