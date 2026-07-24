@@ -77,6 +77,13 @@ export default function Book() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!selectedSlot) {
+      setError("Select an available appointment time before continuing to checkout.");
+      document.querySelector(".slot-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     setSubmitting(true);
     setError("");
     const form = new FormData(event.currentTarget);
@@ -133,7 +140,7 @@ export default function Book() {
           <div className="scheduler-heading"><span>02</span><div><p className="eyebrow">Availability</p><h2>Select a date and time</h2></div></div>
           <label className="date-field">Appointment date<input type="date" min={localDate(1)} max={localDate(120)} value={date} onChange={(event) => setDate(event.target.value)} /></label>
           <div className="slot-panel">
-            {loadingSlots ? <p className="slot-message">Loading available times…</p> : slots.length ? <div className="time-slot-grid">{slots.map((slot) => <button type="button" key={slot} className={selectedSlot === slot ? "time-slot active" : "time-slot"} onClick={() => setSelectedSlot(slot)}>{new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }).format(new Date(slot))}</button>)}</div> : <p className="slot-message">No openings are available on this date.</p>}
+            {loadingSlots ? <p className="slot-message">Loading available times…</p> : slots.length ? <div className="time-slot-grid">{slots.map((slot) => <button type="button" key={slot} className={selectedSlot === slot ? "time-slot active" : "time-slot"} onClick={() => { setSelectedSlot(slot); setError(""); }}>{new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }).format(new Date(slot))}</button>)}</div> : <p className="slot-message">No openings are available on this date.</p>}
           </div>
         </div>
 
@@ -161,12 +168,12 @@ export default function Book() {
             <div><small>Service</small><span>{service.title}</span></div>
             <div><small>Appointment</small><span>{selectedSlot ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Chicago" }).format(new Date(selectedSlot)) : "Select a time"}</span></div>
             <div><small>Products</small><span>{selectedProducts.length ? selectedProducts.map((product) => `${product.title} × ${product.quantity}`).join(", ") : "None selected"}</span></div>
-            <div><small>Due today</small><strong>{money(dueToday)}</strong></div>
+            <div><small>Due today before tax</small><strong>{money(dueToday)}</strong></div>
           </div>
           <div className="form-grid"><label>Full name<input name="name" required autoComplete="name" /></label><label>Email<input name="email" type="email" required autoComplete="email" /></label><label>Phone<input name="phone" type="tel" required autoComplete="tel" /></label><label className="wide">Notes<textarea name="notes" rows={3} placeholder="Hair length, current style or anything Tam should know" /></label></div>
           <label className="policy-check"><input type="checkbox" required /> I agree to the booking, cancellation and payment policies.</label>
           {error && <p className="booking-error" role="alert">{error}</p>}
-          <button className="button gold full" disabled={!selectedSlot || submitting}>{submitting ? "Opening secure checkout…" : dueToday > 0 ? `Continue to checkout · ${money(dueToday)}` : "Confirm free consultation"}</button>
+          <button className="button gold full" disabled={submitting}>{submitting ? "Opening secure checkout…" : selectedSlot ? (dueToday > 0 ? `Continue to checkout · ${money(dueToday)} + tax` : "Confirm free consultation") : "Select a time to continue"}</button>
         </form>
       </div>
 
