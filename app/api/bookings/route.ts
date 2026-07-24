@@ -7,8 +7,22 @@ const HAIRDRESSING_TAX_CODE = "txcd_20040001";
 const TANGIBLE_GOODS_TAX_CODE = "txcd_99999999";
 
 type RequestedProduct = { id?: string; quantity?: number };
+type DatabaseError = { code?: string; message?: string; details?: string; hint?: string };
+
+function isSchemaError(error: unknown) {
+  const value = error as DatabaseError | null;
+  const message = [value?.message, value?.details, value?.hint].filter(Boolean).join(" ");
+  return value?.code === "PGRST204" || value?.code === "PGRST205" || value?.code === "42703" || /schema cache|column .* does not exist|appointments.*not found/i.test(message);
+}
+
+function isStripeTaxSetupError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  return /automatic tax|stripe tax|tax registration|tax settings|customer location|address.*tax/i.test(message);
+}
 
 export async function POST(request: Request) {
+  let appointmentId = "";
+
   try {
     const body = await request.json();
     const service = appointmentServices.find((item) => item.id === body.serviceId);
@@ -43,7 +57,16 @@ export async function POST(request: Request) {
       .gt("ends_at", startsAt.toISOString())
       .in("status", ["pending", "confirmed"]);
 
-    if (conflictError) throw conflictError;
+    if (conflictError) {
+      if (isSchemaError(conflictError)) {
+        return NextResponse.json(
+          { error: "The booking database is not ready. Run the latest supabase/schema.sql in the Supabase SQL Editor, then restart the app." },
+          { status: 503 }
+        );
+      }
+      throw conflictError;
+    }
+
     if (conflicts?.length) {
       return NextResponse.json({ error: "That time was just reserved. Choose another slot." }, { status: 409 });
     }
@@ -74,8 +97,17 @@ export async function POST(request: Request) {
       .select("id")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (isSchemaError(error)) {
+        return NextResponse.json(
+          { error: "The appointments table is missing required columns. Run the latest supabase/schema.sql in the Supabase SQL Editor, then restart the app." },
+          { status: 503 }
+        );
+      }
+      throw error;
+    }
 
+    appointmentId = appointment.id;
     const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
     if (subtotalDueToday === 0) {
       return NextResponse.json({ url: `${origin}/book/success?appointment_id=${appointment.id}` });
@@ -120,36 +152,60 @@ export async function POST(request: Request) {
       }))
     ];
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      automatic_tax: { enabled: true },
-      customer_email: customerEmail,
-      billing_address_collection: "required",
-      line_items: lineItems,
-      success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/book?checkout=cancelled&service=${encodeURIComponent(service.id)}`,
-      metadata: {
-        type: "appointment",
-        appointment_id: appointment.id,
-        service_id: service.id,
-        service_name: service.title,
-        products: selectedProducts.map((item) => `${item.title} x${item.quantity}`).join(", ").slice(0, 500)
-      },
-      payment_intent_data: {
-        receipt_email: customerEmail,
-        description: `${service.title} appointment with ${selectedProducts.length} product selection(s)`,
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        automatic_tax: { enabled: true },
+        customer_email: customerEmail,
+        billing_address_collection: "required",
+        line_items: lineItems,
+        success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/book?checkout=cancelled&service=${encodeURIComponent(service.id)}`,
         metadata: {
+          type: "appointment",
           appointment_id: appointment.id,
+          service_id: service.id,
           service_name: service.title,
-          product_total: String(productTotal)
+          products: selectedProducts.map((item) => `${item.title} x${item.quantity}`).join(", ").slice(0, 500)
+        },
+        payment_intent_data: {
+          receipt_email: customerEmail,
+          description: `${service.title} appointment with ${selectedProducts.length} product selection(s)`,
+          metadata: {
+            appointment_id: appointment.id,
+            service_name: service.title,
+            product_total: String(productTotal)
+          }
         }
+      });
+    } catch (stripeError) {
+      await supabase.from("appointments").update({ status: "expired" }).eq("id", appointment.id).eq("status", "pending");
+      appointmentId = "";
+
+      if (isStripeTaxSetupError(stripeError)) {
+        return NextResponse.json(
+          { error: "Stripe Tax is not fully configured. Activate Stripe Tax and add the Kentucky registration in the Stripe Dashboard, then try again." },
+          { status: 503 }
+        );
       }
-    });
+      throw stripeError;
+    }
 
     await supabase.from("appointments").update({ stripe_session_id: session.id }).eq("id", appointment.id);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Booking checkout failed:", error);
+
+    if (appointmentId) {
+      try {
+        const supabase = getSupabaseAdmin();
+        await supabase.from("appointments").update({ status: "expired" }).eq("id", appointmentId).eq("status", "pending");
+      } catch (cleanupError) {
+        console.error("Unable to release failed appointment:", cleanupError);
+      }
+    }
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to reserve appointment" },
       { status: 500 }
