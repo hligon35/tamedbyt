@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Healthy natural hair care, elevated styling and Tame Ur Mane products in Paducah, Kentucky."
 };
 
-const links = [["Home", "/"], ["About", "/about"], ["Book", "/book"], ["Services", "/services"], ["Shop", "/shop"]];
+const links = [["Home", "/"], ["About", "/about"], ["Book", "/book"], ["Services", "/services"], ["Reviews", "/reviews"], ["Shop", "/shop"]];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="en" data-scroll-behavior="smooth"><body>
@@ -23,9 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <main>{children}</main>
     <footer>
       <div><p className="eyebrow">Tamed By Tam</p><h2>Tame your mane. Own your beauty.</h2></div>
-      <div className="footer-links"><Link href="/book">Book</Link><Link href="/services">Services</Link><Link href="/shop">Shop</Link><a href="https://www.instagram.com/tamedbytam22/">Instagram</a></div>
+      <div className="footer-links"><Link href="/book">Book</Link><Link href="/services">Services</Link><Link href="/reviews">Reviews</Link><Link href="/shop">Shop</Link><a href="https://www.instagram.com/tamedbytam22/">Instagram</a></div>
       <p className="copyright">© 2026 Tamed By Tam · Paducah, Kentucky</p>
     </footer>
-    <nav className="mobile-dock"><Link href="/book">Book</Link><Link href="/services">Services</Link><Link href="/shop">Shop</Link></nav>
+    <nav className="mobile-dock"><Link href="/book">Book</Link><Link href="/services">Services</Link><Link href="/reviews">Reviews</Link><Link href="/shop">Shop</Link></nav>
   </body></html>;
 }
