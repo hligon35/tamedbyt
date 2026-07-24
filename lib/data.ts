@@ -16,6 +16,74 @@ export const services = [
   { id: "mens-services", title: "Men's Services", text: "Focused grooming and natural-hair services created for men.", meta: "45 min", duration: 45, deposit: 2500 }
 ];
 
+export const serviceCatalog = [
+  {
+    id: "consultation",
+    title: "Virtual Consultation",
+    description: "A focused virtual consultation to discuss your hair goals, service selection and preparation.",
+    items: [{ name: "Consultation Virtually", duration: "15 min", price: "$0" }]
+  },
+  {
+    id: "natural-hair-care",
+    title: "Natural Hair Care",
+    description: "Healthy-hair maintenance, hydration, scalp care and styling tailored to your texture.",
+    items: [
+      { name: "Hair Trim Only (Clean Hair)", duration: "10 min", price: "$25" },
+      { name: "Deep Conditioning Treatment", duration: "65 min", price: "$80" },
+      { name: "Hydration (Steam) Treatment", duration: "65 min", price: "$80" },
+      { name: "Wash N Go", duration: "80 min", price: "$85" },
+      { name: "Scalp Exfoliation + Style", duration: "120 min", price: "$125" },
+      { name: "Braid Take Down + Wash + DC + Dry + Trim", duration: "120 min", price: "$110" },
+      { name: "2 Strand Twist", duration: "150 min", price: "$125+" }
+    ]
+  },
+  {
+    id: "hair-extensions",
+    title: "Hair Extensions",
+    description: "Customized extension services designed for a secure, polished and natural-looking finish.",
+    items: [
+      { name: "Weave Style (Glue)", duration: "130 min", price: "$100" },
+      { name: "Natural Sewn", duration: "180 min", price: "$125" },
+      { name: "Closure", duration: "205 min", price: "$160+" },
+      { name: "Wig Install", duration: "175 min", price: "$100+" },
+      { name: "Crochet Style", duration: "120 min", price: "$85" }
+    ]
+  },
+  {
+    id: "hair-braiding",
+    title: "Hair Braiding",
+    description: "Professional braided styles, from classic scalp braids to knotless and specialty looks. Hair is provided for select styles as noted during booking.",
+    items: [
+      { name: "Kids Braids (5th–8th Grade)", duration: "90 min", price: "$75+", deposit: "$10 deposit" },
+      { name: "Youth Knotless Braids (to Age 20)", duration: "160 min", price: "$180+", deposit: "$20 deposit" },
+      { name: "Scalp Braids", duration: "150 min", price: "$85", deposit: "$20 deposit" },
+      { name: "Boho Knotless", duration: "230 min", price: "$275+", deposit: "$40 deposit" },
+      { name: "Gypsy Braids", duration: "375 min", price: "$350+", deposit: "$40 deposit" },
+      { name: "Adult Knotless", duration: "210 min", price: "$250+", deposit: "$20 deposit" },
+      { name: "2 Braids", duration: "80 min", price: "$50", deposit: "$10 deposit" },
+      { name: "Fulani Braids (Half Scalp/Knotless)", duration: "210 min", price: "$200" },
+      { name: "Scalp Braids Ear to Ear", duration: "45 min", price: "$40" },
+      { name: "Miracle Knots", duration: "195 min", price: "$220" }
+    ]
+  },
+  {
+    id: "silk-press",
+    title: "Silk Press Styling",
+    description: "A sleek, smooth finish with movement and shine. Includes end trimming and styling.",
+    items: [{ name: "Silk Press Styling", duration: "90 min", price: "$85" }]
+  },
+  {
+    id: "bouncy-blowout",
+    title: "Bouncy Blowout Styling",
+    description: "A voluminous blowout using a round brush or paddle brush for body, movement and texture.",
+    items: [{ name: "Bouncy Blowout Styling (Round Brush)", duration: "75 min", price: "$85" }]
+  },
+  { id: "updo-styling", title: "Updo Styling", description: "One updo option is currently offered, starting at $100.", items: [] },
+  { id: "individual-loc", title: "Individual Loc", description: "Three loc-care options are currently offered, starting at $80.", items: [] },
+  { id: "mens-services", title: "Men's Services", description: "Two men's service options are currently offered, starting at $50.", items: [] },
+  { id: "add-ons", title: "Add-ons", description: "Ten service add-ons are currently offered, starting at $25.", items: [] }
+];
+
 export const products = [
   { id: "shampoo", title: "Tame Ur Mane Shampoo", price: "$12.50", unitAmount: 1250, benefit: "Cleanse + moisturize", category: "Hair care", badge: "Bestseller", image: shampoo },
   { id: "conditioner", title: "Tame Ur Mane Conditioner", price: "$12.50", unitAmount: 1250, benefit: "Soften + restore", category: "Hair care", image: conditioner },
