@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import logo from "./assets/tamedxt.png";
 import "./globals.css";
+import "./mobile.css";
 
 export const metadata: Metadata = {
   title: { default: "Tamed By Tam | Natural Hair Care & Beauty", template: "%s | Tamed By Tam" },
