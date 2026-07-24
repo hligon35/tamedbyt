@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { products } from "@/lib/data";
 import { stripe } from "@/lib/stripe";
 
+const TANGIBLE_GOODS_TAX_CODE = "txcd_99999999";
+
 export async function POST(request: Request) {
   try {
     const { items } = await request.json() as { items?: Array<{ id: string; quantity: number }> };
@@ -15,7 +17,12 @@ export async function POST(request: Request) {
         price_data: {
           currency: "usd",
           unit_amount: product.unitAmount,
-          product_data: { name: product.title, description: product.benefit }
+          tax_behavior: "exclusive" as const,
+          product_data: {
+            name: product.title,
+            description: product.benefit,
+            tax_code: TANGIBLE_GOODS_TAX_CODE
+          }
         }
       };
     });
@@ -23,6 +30,7 @@ export async function POST(request: Request) {
     const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      automatic_tax: { enabled: true },
       line_items: lineItems,
       billing_address_collection: "required",
       shipping_address_collection: { allowed_countries: ["US"] },
